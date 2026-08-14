@@ -1,1 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Orden - Cool Style</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; padding: 0 !important; }
+      .print-card { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-4 font-sans text-gray-800">
 
+  <!-- Panel de Formulario (No sale al imprimir) -->
+  <div class="no-print max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md mb-8">
+    <h2 class="text-xl font-bold mb-4 text-gray-900 border-b pb-2">📦 Crear Nueva Orden de Venta</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Folio (#)</label>
+        <input type="text" id="inFolio" value="601" oninput="actualizar()" class="w-full border rounded p-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Estatus</label>
+        <select id="inEstatus" onchange="actualizar()" class="w-full border rounded p-2 text-sm">
+          <option value="PAGADO">PAGADO</option>
+          <option value="PENDIENTE">PENDIENTE</option>
+          <option value="ENVIADO">ENVIADO</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Nombre del Cliente</label>
+        <input type="text" id="inCliente" value="Alexis Ramos" oninput="actualizar()" class="w-full border rounded p-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Teléfono</label>
+        <input type="text" id="inTelefono" value="899-984-1131" oninput="actualizar()" class="w-full border rounded p-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Método de Pago</label>
+        <input type="text" id="inPago" value="Transferencia" oninput="actualizar()" class="w-full border rounded p-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Canal de Venta</label>
+        <input type="text" id="inCanal" value="Instagram" oninput="actualizar()" class="w-full border rounded p-2 text-sm">
+      </div>
+    </div>
+
+    <div class="border-t pt-4 mb-4">
+      <h3 class="font-bold text-sm mb-2 text-gray-700">Productos</h3>
+      <div id="listaProductos">
+        <div class="flex gap-2 mb-2 item-row">
+          <input type="text" placeholder="Nombre de la Gorra / Envío" class="p-prod border rounded p-2 text-sm flex-1" value="GORRA BIG BOSS // B STAR BLACK" oninput="actualizar()">
+          <input type="number" placeholder="Cant" class="p-cant border rounded p-2 text-sm w-16" value="1" oninput="actualizar()">
+          <input type="number" placeholder="Precio" class="p-precio border rounded p-2 text-sm w-24" value="350" oninput="actualizar()">
+        </div>
+      </div>
+      <button onclick="agregarFila()" class="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded mt-1 font-semibold">+ Agregar Producto</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 border-t pt-4">
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Paquetería y Rastreos</label>
+        <input type="text" id="inPaqueteria" value="DHL - 2149101496" oninput="actualizar()" class="w-full border rounded p-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Comentarios Adicionales</label>
+        <input type="text" id="inNotas" value="TODO BIEN :)" oninput="actualizar()" class="w-full border rounded p-2 text-sm">
+      </div>
+    </div>
+
+    <button onclick="window.print()" class="w-full bg-black text-white font-bold py-3 rounded-lg shadow hover:bg-gray-800 transition">
+      🖨️ Imprimir / Guardar en PDF o Foto
+    </button>
+  </div>
+
+  <!-- VISTA PREVIA DEL COMPROBANTE DE VENTA (ESTILO FOTO) -->
+  <div class="print-card max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg text-black font-sans">
+    
+    <!-- Encabezado -->
+    <div class="flex justify-between items-start mb-6">
+      <div>
+        <h1 class="text-2xl font-black tracking-wider uppercase">COOL STYLE</h1>
+        <p class="text-xs text-gray-500 font-medium">Comprobante de Venta</p>
+      </div>
+      <div class="text-center">
+        <span id="outEstatus" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">● PAGADO</span>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-gray-400 font-bold uppercase">FOLIO</p>
+        <p id="outFolio" class="text-xl font-black">#601</p>
+      </div>
+    </div>
+
+    <!-- Metadatos -->
+    <div class="grid grid-cols-4 gap-2 border-y border-gray-200 py-3 mb-6 text-xs">
+      <div>
+        <p class="text-gray-400 font-bold uppercase text-[10px]">CLIENTE</p>
+        <p id="outCliente" class="font-bold">Alexis Ramos</p>
+      </div>
+      <div>
+        <p class="text-gray-400 font-bold uppercase text-[10px]">PAGO</p>
+        <p id="outPago" class="font-semibold">Transferencia</p>
+      </div>
+      <div>
+        <p class="text-gray-400 font-bold uppercase text-[10px]">CANAL</p>
+        <p id="outCanal" class="font-semibold">Instagram</p>
+      </div>
+      <div>
+        <p class="text-gray-400 font-bold uppercase text-[10px]">PIEZAS</p>
+        <p id="outPiezas" class="font-bold">1</p>
+      </div>
+    </div>
+
+    <!-- Tabla de Productos -->
+    <table class="w-full text-left mb-6 text-xs">
+      <thead>
+        <tr class="bg-gray-900 text-white uppercase text-[10px]">
+          <th class="p-2 w-8">#</th>
+          <th class="p-2">PRODUCTO</th>
+          <th class="p-2 text-center w-12">CANT.</th>
+          <th class="p-2 text-right w-24">P. UNIT.</th>
+          <th class="p-2 text-right w-24">SUBTOTAL</th>
+        </tr>
+      </thead>
+      <tbody id="outTabla" class="divide-y divide-gray-100">
+        <!-- Generado dinámicamente -->
+      </tbody>
+    </table>
+
+    <!-- Totales -->
+    <div class="flex justify-end mb-8">
+      <div class="w-48 text-xs">
+        <div class="flex justify-between py-1">
+          <span class="text-gray-500 font-bold uppercase">Subtotal</span>
+          <span id="outSubtotal" class="font-semibold">$0.00</span>
+        </div>
+        <div class="flex justify-between items-center bg-gray-900 text-white p-3 rounded-xl mt-2">
+          <span class="font-bold uppercase text-xs">TOTAL</span>
+          <span id="outTotal" class="text-base font-black">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie de página -->
+    <div class="border-t border-gray-200 pt-4 grid grid-cols-2 gap-4 text-xs">
+      <div>
+        <p class="text-gray-400 font-bold uppercase text-[10px] mb-1">ENVÍO Y DETALLES</p>
+        <p id="outEnvioCliente" class="font-bold">Alexis Ramos</p>
+        <p id="outNotas" class="text-gray-500 mt-2">TODO BIEN :)</p>
+      </div>
+      <div>
+        <p class="text-gray-400 font-bold uppercase text-[10px] mb-1">TELÉFONO Y PAQUETERÍA</p>
+        <p id="outTelefono" class="font-bold mb-1">899-984-1131</p>
+        <p id="outPaqueteria" class="text-gray-700 font-semibold">DHL - 2149101496</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function agregarFila() {
+      const container = document.getElementById('listaProductos');
+      const div = document.createElement('div');
+      div.className = 'flex gap-2 mb-2 item-row';
+      div.innerHTML = `
+        <input type="text" placeholder="Producto / Envío" class="p-prod border rounded p-2 text-sm flex-1" oninput="actualizar()">
+        <input type="number" placeholder="Cant" class="p-cant border rounded p-2 text-sm w-16" value="1" oninput="actualizar()">
+        <input type="number" placeholder="Precio" class="p-precio border rounded p-2 text-sm w-24" value="0" oninput="actualizar()">
+      `;
+      container.appendChild(div);
+      actualizar();
+    }
+
+    function actualizar() {
+      document.getElementById('outFolio').innerText = '#' + document.getElementById('inFolio').value;
+      document.getElementById('outEstatus').innerText = '● ' + document.getElementById('inEstatus').value;
+      document.getElementById('outCliente').innerText = document.getElementById('inCliente').value;
+      document.getElementById('outEnvioCliente').innerText = document.getElementById('inCliente').value;
+      document.getElementById('outTelefono').innerText = document.getElementById('inTelefono').value;
+      document.getElementById('outPago').innerText = document.getElementById('inPago').value;
+      document.getElementById('outCanal').innerText = document.getElementById('inCanal').value;
+      document.getElementById('outPaqueteria').innerText = document.getElementById('inPaqueteria').value;
+      document.getElementById('outNotas').innerText = document.getElementById('inNotas').value;
+
+      const rows = document.querySelectorAll('.item-row');
+      const tbody = document.getElementById('outTabla');
+      tbody.innerHTML = '';
+      
+      let totalPzs = 0;
+      let totalGral = 0;
+
+      rows.forEach((row, i) => {
+        const prod = row.querySelector('.p-prod').value || 'Producto';
+        const cant = parseFloat(row.querySelector('.p-cant').value) || 0;
+        const precio = parseFloat(row.querySelector('.p-precio').value) || 0;
+        const sub = cant * precio;
+
+        totalPzs += cant;
+        totalGral += sub;
+
+        tbody.innerHTML += `
+          <tr>
+            <td class="p-2 font-bold text-gray-400">${i + 1}</td>
+            <td class="p-2 font-bold uppercase">${prod}</td>
+            <td class="p-2 text-center font-bold">${cant}</td>
+            <td class="p-2 text-right">$${precio.toFixed(2)}</td>
+            <td class="p-2 text-right font-bold">$${sub.toFixed(2)}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('outPiezas').innerText = totalPzs;
+      document.getElementById('outSubtotal').innerText = '$' + totalGral.toFixed(2);
+      document.getElementById('outTotal').innerText = '$' + totalGral.toFixed(2);
+    }
+
+    actualizar();
+  </script>
+</body>
+</html>
